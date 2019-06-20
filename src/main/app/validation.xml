@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking" xmlns:metadata="http://www.mulesoft.org/schema/mule/metadata" xmlns:validation="http://www.mulesoft.org/schema/mule/validation" xmlns:dw="http://www.mulesoft.org/schema/mule/ee/dw" xmlns:json="http://www.mulesoft.org/schema/mule/json" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:spring="http://www.springframework.org/schema/beans" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/json/current/mule-json.xsd
+http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee/dw/current/dw.xsd
+http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mule/validation/current/mule-validation.xsd
+http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/mule/ee/tracking/current/mule-tracking-ee.xsd">
+    <validation:config name="Validation_Configuration" doc:name="Validation Configuration"/>
+    <flow name="AllValidation">
+        <http:listener config-ref="HTTP_Listener_Configuration_flight" path="/all-validation" doc:name="HTTP"/>
+        <byte-array-to-string-transformer doc:name="Byte Array to String"/>
+        <validation:all doc:name="Validation" config-ref="Validation_Configuration">
+            <validation:validations>
+                <validation:is-email email="#[json:email]" message="Pls put correct email format!"/>
+                <validation:is-not-empty value="#[json:name]" message="Name is Required"/>
+                <validation:is-number value="#[json:phone]" numberType="INTEGER" message="Phone No must be contain number"/>
+                <validation:matches-regex value="#[json:name]" regex="^[a-zA-Z]+$" message="Name can not contain Integer value and other special charactors"/>
+            </validation:validations>
+        </validation:all>
+        <logger level="INFO" doc:name="Logger" message="Validation Successful"/>
+    </flow>
+    <flow name="emptyArray-choiceFlow">
+        <http:listener config-ref="HTTP_Listener_Configuration_flight" path="/empty-validation" doc:name="HTTP"/>
+        <json:json-to-object-transformer doc:name="JSON to Object" returnClass="java.util.HashMap"/>
+        <logger message="#[payload.data.detailsSearch]" level="INFO" doc:name="Logger"/>
+        <logger message="#[payload.data.detailsSearch.size()]" level="INFO" doc:name="Logger"/>
+        <choice doc:name="Choice">
+            <when expression="#[payload.data.detailsSearch.size() &lt;= 0 ]">
+                <dw:transform-message doc:name="emptyTransform Message">
+                    <dw:set-payload><![CDATA[%dw 1.0
+%output application/json
+---
+{
+	status: "empty"
+}]]></dw:set-payload>
+                </dw:transform-message>
+            </when>
+            <otherwise>
+                <dw:transform-message doc:name="successTransform Message">
+                    <dw:set-payload><![CDATA[%dw 1.0
+%output application/json
+---
+{
+	status: "success"
+}]]></dw:set-payload>
+                </dw:transform-message>
+            </otherwise>
+        </choice>
+    </flow>
+    <flow name="email-validation-MessageProcesserFlow">
+        <http:listener config-ref="HTTP_Listener_Configuration_flight" path="/email-validation-json" doc:name="HTTP"/>
+        <json:json-to-object-transformer doc:name="JSON to Object"/>
+        <validation:is-email config-ref="Validation_Configuration" email="#[json:email]" doc:name="Email Validation"/>
+        <logger message="email validation success!!!" level="INFO" doc:name="Logger"/>
+    </flow>
+    <flow name="email-validation-MELFlow">
+        <http:listener config-ref="HTTP_Listener_Configuration_flight" path="/email-validation-MEL" doc:name="HTTP"/>
+        <json:json-to-object-transformer doc:name="JSON to Object"/>
+        <choice doc:name="Choice">
+            <when expression="#[validator.validateEmail('#[payload.email]')]">
+                <logger message="correct email format" level="INFO" doc:name="email Logger"/>
+            </when>
+            <otherwise>
+                <logger message="wrong email format" level="INFO" doc:name="Logger"/>
+            </otherwise>
+        </choice>
+        <dw:transform-message doc:name="Transform Message">
+            <dw:set-payload><![CDATA[%dw 1.0
+%output application/json
+---
+{
+	"status" : "success"
+}]]></dw:set-payload>
+        </dw:transform-message>
+    </flow>
+    <flow name="email-validation-queryparamFlow">
+        <http:listener config-ref="HTTP_Listener_Configuration_flight" path="/email-validation" doc:name="HTTP"/>
+        <validation:is-email config-ref="Validation_Configuration" message="Email is not correct format" email="#[message.inboundProperties.'http.query.params'.myparam]" doc:name="Validation"/>
+        <logger message="Email Address is valid" level="INFO" doc:name="Logger"/>
+    </flow>
+</mule>
