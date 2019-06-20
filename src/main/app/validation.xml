@@ -27,7 +27,7 @@ http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/m
     <flow name="emptyArray-choiceFlow">
         <http:listener config-ref="HTTP_Listener_Configuration_flight" path="/empty-validation" doc:name="HTTP"/>
         <json:json-to-object-transformer doc:name="JSON to Object" returnClass="java.util.HashMap"/>
-        <logger message="#[payload.data.detailsSearch]" level="INFO" doc:name="Logger"/>
+        <logger message="#[payload.data.detailsSearch]" level="INFO" doc:name="Array Logger"/>
         <logger message="#[payload.data.detailsSearch.size()]" level="INFO" doc:name="Array Size Logger"/>
         <choice doc:name="Choice">
             <when expression="#[payload.data.detailsSearch.size() &lt;= 0 ]">
