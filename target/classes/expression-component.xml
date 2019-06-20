@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:spring="http://www.springframework.org/schema/beans" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+    <flow name="expression-componentFlow">
+        <http:listener config-ref="HTTP_Listener_Configuration_flight" path="/expression" doc:name="HTTP"/>
+        <set-variable variableName="Name" value="#[message.inboundProperties.'http.query.params'.name]" doc:name="Name Variable"/>
+        <set-variable variableName="Id" value="#[message.inboundProperties.'http.query.params'.id]" doc:name="Id Variable"/>
+        <expression-component doc:name="Expression"><![CDATA[flowVars.checkflag='false';      
+if(flowVars.id != "" &&  flowVars.name  != "" ){
+	flowVars.checkflag='true';      
+}]]></expression-component>
+        <logger message="#[flowVars]" level="INFO" doc:name="Logger"/>
+    </flow>
+</mule>

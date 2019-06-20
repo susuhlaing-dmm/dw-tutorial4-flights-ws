@@ -1,0 +1,50 @@
+INSERT INTO `mule_testing`.`employee`
+(`id`,
+`name`,
+`phone`,
+`email`,
+`dob`)
+VALUES
+('02',
+'susu',
+'09790000',
+'susu@email.com',
+'1980-01-01');
+
+
+ALTER USER 'student'@'localhost' IDENTIFIED WITH mysql_native_password BY 'pass123';
+
+====================
+app's request-->query param, json format, form load
+
+flow scope
+sub flow
+choise
+db crud
+api kit router
+http request
+rest output
+soap output
+
+====================
+
+
+>>message[header,payload]
+>>header[properties,variables]
+>>properties[Inbound properties,Outbound properties]
+>>variables[flow variables,session variables,record variables] //temporary pieces of information and user-defined metadata about a message
+
+>>get value of the input message
+#[message.inboundProperties.propertyName]
+eg. #[message.inboundProperties.'http.uri.params'.id], #[message.inboundProperties[http.query.params]]
+
+>>get value of variable
+#[sessionVars], #[flowVars]
+eg. #[flowVars.createReq.name]
+eg. session.put("a_key","a_value") -->#[sessionVars['a_key']] //get the value of session variable
+
+>>Transform the Payload to a Java Class
+#[message.payloadAs(java.lang.String)] //transforms the message’s payload to String
+
+
+

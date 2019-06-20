@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:spring="http://www.springframework.org/schema/beans" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/mule/ee/tracking/current/mule-tracking-ee.xsd">
+    <flow name="choice-session-flowrefFlow">
+        <http:listener config-ref="HTTP_Listener_Configuration_flight" path="/cs" doc:name="HTTP"/>
+        <set-session-variable variableName="method" value="#[message.inboundProperties.'http.method']" doc:name="Session Variable"/>
+        <logger message="#[sessionVars.method]" level="INFO" doc:name="Logger"/>
+        <choice doc:name="Choice">
+            <when expression="#[sessionVars.method ==  'GET']">
+                <logger message="GET METHOD........." level="INFO" doc:name="GET Logger"/>
+            </when>
+            <when expression="#[sessionVars.method ==  'PUT']">
+                <logger message="PUT METHOD......." level="INFO" doc:name="PUT Logger"/>
+            </when>
+            <otherwise>
+                <logger message="Neither GET nor PUT..........." level="INFO" doc:name="Default Logger"/>
+            </otherwise>
+        </choice>
+        <set-payload value="#[sessionVars.method]" doc:name="Set Payload"/>
+    </flow>
+</mule>
